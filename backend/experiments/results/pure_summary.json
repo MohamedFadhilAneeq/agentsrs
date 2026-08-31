@@ -1,0 +1,70 @@
+{
+  "n": 102,
+  "completeness_detection_rate_multi": 0.931,
+  "completeness_detection_rate_single": 0.931,
+  "completeness_match_rate_multi": 0.745,
+  "completeness_match_rate_single": 0.794,
+  "has_judge": true,
+  "by_level": {
+    "L1": {
+      "n": 47,
+      "multi_detected": 47,
+      "single_detected": 47,
+      "multi_matched": 40,
+      "single_matched": 42
+    },
+    "L2": {
+      "n": 41,
+      "multi_detected": 40,
+      "single_detected": 40,
+      "multi_matched": 29,
+      "single_matched": 33
+    },
+    "L3": {
+      "n": 14,
+      "multi_detected": 8,
+      "single_detected": 8,
+      "multi_matched": 7,
+      "single_matched": 6
+    }
+  },
+  "by_type": {
+    "action": {
+      "n": 64,
+      "multi_detected": 58,
+      "single_detected": 59,
+      "multi_matched": 49,
+      "single_matched": 53
+    },
+    "action(constraint)": {
+      "n": 1,
+      "multi_detected": 1,
+      "single_detected": 1,
+      "multi_matched": 1,
+      "single_matched": 1
+    },
+    "action(constraints)": {
+      "n": 1,
+      "multi_detected": 1,
+      "single_detected": 1,
+      "multi_matched": 1,
+      "single_matched": 1
+    },
+    "action(obj)": {
+      "n": 16,
+      "multi_detected": 16,
+      "single_detected": 16,
+      "multi_matched": 13,
+      "single_matched": 15
+    },
+    "branch": {
+      "n": 20,
+      "multi_detected": 19,
+      "single_detected": 18,
+      "multi_matched": 12,
+      "single_matched": 11
+    }
+  },
+  "recompgpt_pass1": 0.814,
+  "recompgpt_pass3": 0.938
+}

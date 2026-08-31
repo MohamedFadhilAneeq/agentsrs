@@ -1,0 +1,61 @@
+﻿id,requirement_text,task,ground_truth_issue_present,ground_truth_issue_description
+C1,The system shall allow a registered member to borrow a book.,completeness,True,No handling for the case where the book is currently unavailable
+C2,The system shall allow a member to return a borrowed book.,completeness,True,No handling for an overdue return (fine/penalty case)
+C3,When a member's borrowed book exceeds the due date the system shall notify the member.,completeness,True,No handling for what happens if the member ignores the notification
+C4,The system shall allow an admin to add a new book to the catalog.,completeness,True,No handling for a duplicate ISBN already in the catalog
+C5,The system shall allow a member to search for a book by title.,completeness,True,No handling for a zero-result search
+C6,The system shall allow an admin to remove a book from the catalog.,completeness,True,No handling for removing a book that is currently borrowed
+C7,The system shall allow a member to reserve a book that is currently unavailable.,completeness,True,No handling for notifying the member once the book becomes available
+C8,The system shall allow a member to borrow a book only if the book is available and the member has no unpaid fines; otherwise the system shall display a rejection message.,completeness,False,Edge case (unavailable/unpaid fines) already explicitly handled
+C9,The system shall allow an admin to add a new book to the catalog and if the ISBN already exists the system shall reject the addition and display an error message.,completeness,False,Duplicate ISBN case already explicitly handled
+C10,The system shall allow a member to renew a borrowed book up to two times provided no other member has reserved it; otherwise the renewal request shall be denied.,completeness,False,Renewal limit and reservation conflict already explicitly handled
+A1,The system shall provide a user-friendly interface for searching books.,ambiguity,True,"""User-friendly"" is subjective and not measurable"
+A2,The system shall process borrow requests quickly.,ambiguity,True,"""Quickly"" has no measurable time bound"
+A3,The system shall ensure the catalog is reasonably up to date.,ambiguity,True,"""Reasonably up to date"" is subjective"
+A4,The system shall handle a large number of concurrent users efficiently.,ambiguity,True,"""Large number"" and ""efficiently"" are both unmeasurable"
+A5,The system shall provide appropriate notifications to members.,ambiguity,True,"""Appropriate"" does not specify notification type or timing"
+A6,The system shall allow a member to borrow up to 5 books at a time.,ambiguity,False,Measurable numeric limit already specified
+A7,The system shall send an overdue notification email within 24 hours of the due date passing.,ambiguity,False,Measurable time bound already specified
+A8,The system shall support at least 200 concurrent user sessions without response time exceeding 2 seconds.,ambiguity,False,Measurable performance criteria already specified
+A9,The system shall secure member data properly.,ambiguity,True,"""Properly"" does not specify a security standard or mechanism"
+A10,The system shall allow an admin to generate a report listing all books overdue by more than 7 days.,ambiguity,False,Measurable threshold already specified
+C11,The system shall allow a customer to add a product to the shopping cart.,completeness,True,No handling for the case where the product is out of stock
+C12,The system shall allow a customer to remove an item from the shopping cart.,completeness,True,No handling for removing the last item (empty cart state)
+C13,The system shall process a payment when the customer checks out.,completeness,True,No handling for a failed or declined payment
+C14,The system shall send a confirmation email after a successful order is placed.,completeness,True,No handling for what happens if the email delivery fails
+C15,The system shall allow a customer to apply a discount code at checkout.,completeness,True,No handling for an invalid or already-used discount code
+C16,The system shall allow a customer to view the order history.,completeness,True,No handling for the case where the customer has no previous orders
+C17,The system shall allow a customer to cancel an order.,completeness,True,No handling for an order that has already been shipped
+C18,The system shall allow a customer to add a product to the cart; if the product is out of stock the system shall display an out-of-stock message and prevent the addition.,completeness,False,Out-of-stock condition already explicitly handled
+C19,The system shall process a payment at checkout; if the payment is declined the system shall display an error message and allow the customer to retry with a different payment method.,completeness,False,Failed payment case already explicitly handled
+C20,The system shall allow a customer to cancel an order only if the order status is processing; if the order has already been shipped the system shall inform the customer that cancellation is no longer possible.,completeness,False,Post-shipment cancellation case already explicitly handled
+C21,The system shall allow a patient to book an appointment with a doctor.,completeness,True,No handling for when the doctor has no available slots
+C22,The system shall allow a patient to cancel an appointment.,completeness,True,No handling for cancellation within a restricted notice period (less than 24 hours before)
+C23,The system shall allow a doctor to view their upcoming appointments.,completeness,True,No handling for the case where the doctor has no upcoming appointments
+C24,The system shall send a reminder to the patient before their appointment.,completeness,True,No handling for what happens if the patient has already cancelled the appointment before the reminder is sent
+C25,The system shall allow a patient to upload a medical document.,completeness,True,No handling for an unsupported file format
+C26,The system shall allow an admin to deactivate a patient account.,completeness,True,No handling for deactivating an account that has upcoming booked appointments
+C27,The system shall allow a patient to reset their password by providing their registered email address.,completeness,True,No handling for the case where the email address is not found in the system
+C28,The system shall allow a patient to book an appointment; if no slots are available for the selected doctor the system shall inform the patient and offer the next available date.,completeness,False,No-availability condition already explicitly handled
+C29,The system shall allow a patient to upload a medical document; supported formats are PDF and JPEG only; if the uploaded file is in any other format the system shall reject the upload and display an error message.,completeness,False,Unsupported format case already explicitly handled
+C30,The system shall allow an admin to deactivate a patient account; if the patient has upcoming booked appointments the system shall notify the patient and cancel all pending appointments before deactivation.,completeness,False,Upcoming-appointments conflict already explicitly handled
+A11,The system shall process checkout payments in a timely manner.,ambiguity,True,"""Timely"" is not measurable — no time threshold specified"
+A12,The system shall encrypt sensitive customer data.,ambiguity,False,Encryption is a defined security action — not a vague term
+A13,The system shall complete payment processing within 5 seconds under normal load.,ambiguity,False,Measurable time bound and load condition already specified
+A14,The system shall provide a seamless checkout experience.,ambiguity,True,"""Seamless"" is subjective and not measurable"
+A15,The system shall ensure that customer passwords are stored securely.,ambiguity,True,"""Securely"" does not specify the hashing algorithm or security standard"
+A16,The system shall store customer passwords using bcrypt hashing with a minimum cost factor of 12 compliant with OWASP ASVS Level 2.,ambiguity,False,Specific algorithm and compliance standard already stated
+A17,The system shall notify the customer when their order status changes.,ambiguity,True,Multiple interpretations: notification could mean email SMS or in-app push — channel not specified
+A18,The system shall send an email notification to the customer within 10 minutes of any order status change.,ambiguity,False,Channel (email) and time bound (10 minutes) already specified
+A19,The system shall handle peak shopping traffic without degradation.,ambiguity,True,"""Peak traffic"" and ""degradation"" are both unmeasurable"
+A20,The system shall support up to 10000 simultaneous sessions during peak periods with a maximum checkout response time of 3 seconds.,ambiguity,False,Measurable session count and response time already specified
+A21,The system shall allow patients to access their records quickly.,ambiguity,True,"""Quickly"" is not measurable — no time threshold given"
+A22,The system shall allow patients to access their records within 3 seconds of login.,ambiguity,False,Measurable time bound already specified
+A23,The system shall maintain patient data in a secure manner.,ambiguity,True,"""Secure manner"" is subjective — no standard or control specified"
+A24,The system shall store and transmit patient data in accordance with HIPAA using AES-256 encryption for data at rest and TLS 1.3 for data in transit.,ambiguity,False,Specific compliance standard and technical controls already stated
+A25,The system shall send appointment reminders to patients in a reasonable time before the appointment.,ambiguity,True,"""Reasonable time"" is not measurable — no lead time specified"
+A26,The system shall send an SMS reminder to the patient 24 hours before their scheduled appointment.,ambiguity,False,Channel (SMS) and time lead (24 hours) already specified
+A27,The system shall allow doctors to respond to patient messages promptly.,ambiguity,True,"""Promptly"" is not measurable — no response time bound given"
+A28,The system shall ensure that the patient portal is accessible to users with disabilities.,ambiguity,True,"""Accessible"" is ambiguous — no accessibility standard (e.g. WCAG 2.1 AA) is cited"
+A29,The system shall make the patient portal compliant with WCAG 2.1 Level AA accessibility guidelines.,ambiguity,False,Specific accessibility standard already cited
+A30,The system shall ensure the portal performs well under normal usage.,ambiguity,True,"""Performs well"" and ""normal usage"" are both subjective and unmeasurable"

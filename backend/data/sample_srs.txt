@@ -1,0 +1,5 @@
+The system shall allow a registered user to log in using a username and password.
+The system shall respond quickly to all user requests.
+When the temperature exceeds the set limit, the system shall trigger an alarm.
+The system shall allow an admin to delete a user account.
+The system should be easy to use for new users.

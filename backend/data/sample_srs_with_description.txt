@@ -1,0 +1,3 @@
+The THEMAS system shall check if reported temperatures exceed set limits. Exceedances will be reported, while temperatures within limits will be output for further processing. || When the temperature exceeds the set limit, the system shall trigger an alarm.
+A registered user provides a username and password to access their account, and if the credentials are wrong the system should let them know and try again. || The system shall allow a registered user to log in using a username and password.
+Members can search the catalog by title, and if nothing matches they should be told clearly so they can try a different search. || The system shall allow a member to search for a book by title.

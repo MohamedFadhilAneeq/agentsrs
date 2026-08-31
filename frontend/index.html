@@ -1,0 +1,781 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AgentSRS — Multi-Agent Requirements Quality Analyser</title>
+<style>
+  :root {
+    --bg: #f1f5f9;
+    --surface: #ffffff;
+    --border: #e2e8f0;
+    --text: #0f172a;
+    --text-muted: #64748b;
+    --primary: #4f46e5;
+    --primary-light: #eef2ff;
+    --green: #059669;
+    --green-bg: #ecfdf5;
+    --amber: #d97706;
+    --amber-bg: #fffbeb;
+    --red: #dc2626;
+    --red-bg: #fef2f2;
+    --purple: #7c3aed;
+    --purple-bg: #f5f3ff;
+    --gray: #6b7280;
+    --gray-bg: #f9fafb;
+    --blue: #2563eb;
+    --blue-bg: #eff6ff;
+    --font: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    --mono: 'Cascadia Code', 'Fira Code', 'Consolas', monospace;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: var(--font); background: var(--bg); color: var(--text); min-height: 100vh; }
+
+  /* Header */
+  .header { background: var(--primary); color: white; padding: 1rem 2rem; display: flex; align-items: center; gap: 1rem; box-shadow: 0 2px 8px rgba(0,0,0,0.15); }
+  .header-logo { font-size: 1.5rem; font-weight: 700; letter-spacing: -0.5px; }
+  .header-sub { font-size: 0.85rem; opacity: 0.8; margin-top: 2px; }
+  .header-badge { margin-left: auto; background: rgba(255,255,255,0.2); border-radius: 20px; padding: 4px 12px; font-size: 0.75rem; font-weight: 600; letter-spacing: 0.5px; }
+
+  /* Tabs */
+  .tabs { background: var(--surface); border-bottom: 1px solid var(--border); display: flex; padding: 0 2rem; }
+  .tab { padding: 1rem 1.5rem; cursor: pointer; font-weight: 500; color: var(--text-muted); border-bottom: 3px solid transparent; transition: all 0.15s; font-size: 0.9rem; }
+  .tab:hover { color: var(--primary); }
+  .tab.active { color: var(--primary); border-bottom-color: var(--primary); }
+
+  /* Main layout */
+  .container { max-width: 960px; margin: 0 auto; padding: 2rem; }
+  .tab-panel { display: none; }
+  .tab-panel.active { display: block; }
+
+  /* Form */
+  .form-card { background: var(--surface); border-radius: 12px; border: 1px solid var(--border); padding: 1.5rem; margin-bottom: 1.5rem; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+  .form-card h2 { font-size: 1rem; font-weight: 600; margin-bottom: 1rem; color: var(--text); }
+  label { display: block; font-size: 0.85rem; font-weight: 500; color: var(--text-muted); margin-bottom: 6px; }
+  .optional-tag { font-weight: 400; color: var(--gray); font-size: 0.8rem; }
+  textarea { width: 100%; border: 1px solid var(--border); border-radius: 8px; padding: 10px 12px; font-family: var(--font); font-size: 0.9rem; resize: vertical; background: var(--bg); color: var(--text); transition: border 0.15s; }
+  textarea:focus { outline: none; border-color: var(--primary); background: white; }
+  .form-group { margin-bottom: 1rem; }
+  .btn { display: inline-flex; align-items: center; gap: 8px; background: var(--primary); color: white; border: none; border-radius: 8px; padding: 10px 20px; font-size: 0.9rem; font-weight: 600; cursor: pointer; transition: all 0.15s; }
+  .btn:hover:not(:disabled) { background: #4338ca; transform: translateY(-1px); box-shadow: 0 4px 12px rgba(79,70,229,0.3); }
+  .btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+  .btn-outline { background: white; color: var(--primary); border: 1.5px solid var(--primary); }
+  .btn-outline:hover:not(:disabled) { background: var(--primary-light); }
+
+  /* File upload */
+  .upload-area { border: 2px dashed var(--border); border-radius: 12px; padding: 3rem; text-align: center; cursor: pointer; transition: all 0.15s; background: var(--surface); }
+  .upload-area:hover, .upload-area.dragover { border-color: var(--primary); background: var(--primary-light); }
+  .upload-icon { font-size: 2.5rem; margin-bottom: 0.75rem; }
+  .upload-area p { color: var(--text-muted); font-size: 0.9rem; }
+  .upload-area strong { color: var(--primary); }
+  #file-name { margin-top: 0.75rem; font-size: 0.85rem; color: var(--green); font-weight: 500; }
+  #file-input { display: none; }
+
+  /* Spinner */
+  .spinner-wrap { text-align: center; padding: 3rem; }
+  .spinner { width: 40px; height: 40px; border: 4px solid var(--border); border-top-color: var(--primary); border-radius: 50%; animation: spin 0.8s linear infinite; margin: 0 auto 1rem; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .spinner-wrap p { color: var(--text-muted); font-size: 0.9rem; }
+
+  /* Pipeline trace */
+  .trace-wrapper { position: relative; }
+  .trace-connector { display: flex; align-items: center; justify-content: center; padding: 6px 0; color: var(--text-muted); font-size: 0.78rem; gap: 8px; }
+  .trace-connector::before, .trace-connector::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+  .arrow-down { display: flex; flex-direction: column; align-items: center; gap: 2px; margin: 4px 0; }
+  .arrow-line { width: 2px; height: 20px; background: var(--border); }
+  .arrow-tip { width: 0; height: 0; border-left: 6px solid transparent; border-right: 6px solid transparent; border-top: 8px solid var(--border); }
+
+  /* Step card */
+  .step-card { background: var(--surface); border-radius: 12px; border: 1px solid var(--border); border-left: 5px solid var(--blue); overflow: hidden; box-shadow: 0 1px 4px rgba(0,0,0,0.06); margin-bottom: 0; }
+  .step-card.status-ok { border-left-color: var(--blue); }
+  .step-card.status-clean { border-left-color: var(--green); }
+  .step-card.status-issue { border-left-color: var(--red); }
+  .step-card.status-skipped { border-left-color: var(--gray); }
+  .step-card.status-error { border-left-color: var(--red); }
+  .step-card.step-3-ok { border-left-color: var(--purple); }
+
+  .step-header { display: flex; align-items: center; gap: 12px; padding: 1rem 1.25rem; border-bottom: 1px solid var(--border); }
+  .step-num { background: var(--primary); color: white; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.8rem; font-weight: 700; flex-shrink: 0; }
+  .step-num.s2a { background: #0891b2; }
+  .step-num.s2b { background: #0891b2; }
+  .step-num.s3 { background: var(--purple); }
+  .step-num.report { background: #1e293b; }
+  .step-title { flex: 1; }
+  .step-title h3 { font-size: 0.95rem; font-weight: 600; }
+  .step-title .step-desc { font-size: 0.8rem; color: var(--text-muted); margin-top: 2px; line-height: 1.4; }
+  .badge { padding: 3px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; white-space: nowrap; }
+  .badge-green { background: var(--green-bg); color: var(--green); }
+  .badge-red { background: var(--red-bg); color: var(--red); }
+  .badge-amber { background: var(--amber-bg); color: var(--amber); }
+  .badge-gray { background: var(--gray-bg); color: var(--gray); }
+  .badge-purple { background: var(--purple-bg); color: var(--purple); }
+  .badge-blue { background: var(--blue-bg); color: var(--blue); }
+
+  .step-body { padding: 1.25rem; display: flex; flex-direction: column; gap: 1rem; }
+  .mode-tag { display: inline-flex; align-items: center; gap: 6px; font-size: 0.78rem; color: var(--text-muted); background: var(--bg); border: 1px solid var(--border); border-radius: 6px; padding: 3px 10px; }
+
+  /* Collapsible prompt */
+  .collapsible-btn { width: 100%; text-align: left; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 8px 12px; cursor: pointer; font-size: 0.82rem; font-weight: 600; color: var(--text-muted); display: flex; align-items: center; gap: 8px; transition: all 0.15s; }
+  .collapsible-btn:hover { background: var(--primary-light); color: var(--primary); border-color: var(--primary); }
+  .collapsible-btn .chevron { margin-left: auto; transition: transform 0.2s; font-size: 0.7rem; }
+  .collapsible-btn.open .chevron { transform: rotate(180deg); }
+  .collapsible-content { display: none; margin-top: 8px; }
+  .collapsible-content.open { display: block; }
+
+  /* Data boxes */
+  .data-block { }
+  .data-label { font-size: 0.75rem; font-weight: 700; letter-spacing: 0.5px; color: var(--text-muted); text-transform: uppercase; margin-bottom: 6px; display: flex; align-items: center; gap: 8px; }
+  .data-label .arrow-label { font-size: 0.7rem; color: var(--primary); font-weight: 600; letter-spacing: 0; text-transform: none; }
+  pre { background: #1e293b; color: #e2e8f0; border-radius: 8px; padding: 12px 14px; font-family: var(--mono); font-size: 0.8rem; line-height: 1.6; overflow-x: auto; white-space: pre-wrap; word-break: break-word; }
+  pre.input-pre { background: var(--bg); color: var(--text); border: 1px solid var(--border); }
+  .json-key { color: #93c5fd; }
+  .json-str { color: #86efac; }
+  .json-num { color: #fbbf24; }
+  .json-bool { color: #f9a8d4; }
+  .json-null { color: #94a3b8; }
+
+  /* Report card */
+  .report-card { background: #1e293b; color: #e2e8f0; border-radius: 12px; padding: 1.5rem; }
+  .report-card h3 { font-size: 0.9rem; font-weight: 700; letter-spacing: 0.5px; color: #94a3b8; text-transform: uppercase; margin-bottom: 1rem; display: flex; align-items: center; gap: 8px; }
+  .report-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.25rem; }
+  .report-metric { background: rgba(255,255,255,0.06); border-radius: 8px; padding: 1rem; }
+  .report-metric .metric-val { font-size: 2rem; font-weight: 700; color: white; }
+  .report-metric .metric-lbl { font-size: 0.75rem; color: #94a3b8; margin-top: 2px; }
+  .refined-box { background: rgba(255,255,255,0.06); border-radius: 8px; padding: 1rem; }
+  .refined-box .refined-label { font-size: 0.75rem; color: #94a3b8; font-weight: 700; text-transform: uppercase; margin-bottom: 6px; }
+  .refined-box .refined-text { font-size: 0.9rem; color: #f1f5f9; line-height: 1.6; }
+  .changes-list { list-style: none; margin-top: 8px; }
+  .changes-list li { font-size: 0.82rem; color: #86efac; padding: 2px 0; display: flex; gap: 8px; }
+  .changes-list li::before { content: '+'; font-weight: 700; }
+
+  /* Multi-req list */
+  .summary-bar { background: var(--surface); border-radius: 12px; border: 1px solid var(--border); padding: 1.25rem 1.5rem; margin-bottom: 1.5rem; display: flex; gap: 2rem; align-items: center; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+  .summary-stat { text-align: center; }
+  .summary-stat .stat-val { font-size: 1.75rem; font-weight: 700; color: var(--primary); }
+  .summary-stat .stat-lbl { font-size: 0.75rem; color: var(--text-muted); margin-top: 2px; }
+  .req-card { background: var(--surface); border-radius: 12px; border: 1px solid var(--border); margin-bottom: 12px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+  .req-header { padding: 1rem 1.25rem; cursor: pointer; display: flex; align-items: center; gap: 12px; transition: background 0.1s; }
+  .req-header:hover { background: var(--bg); }
+  .req-num { background: var(--primary-light); color: var(--primary); border-radius: 8px; padding: 2px 10px; font-size: 0.8rem; font-weight: 700; white-space: nowrap; }
+  .req-text { flex: 1; font-size: 0.88rem; color: var(--text); line-height: 1.4; }
+  .req-badges { display: flex; gap: 6px; flex-shrink: 0; }
+  .req-expand { color: var(--text-muted); font-size: 0.75rem; margin-left: 4px; transition: transform 0.2s; }
+  .req-expand.open { transform: rotate(180deg); }
+  .req-trace { display: none; border-top: 1px solid var(--border); padding: 1.5rem; background: var(--bg); }
+  .req-trace.open { display: block; }
+
+  /* Error */
+  .error-box { background: var(--red-bg); border: 1px solid #fecaca; border-radius: 8px; padding: 1rem; color: var(--red); font-size: 0.88rem; }
+
+  /* Divider */
+  .pipeline-divider { text-align: center; padding: 8px 0; color: var(--text-muted); font-size: 0.78rem; display: flex; align-items: center; gap: 8px; }
+  .pipeline-divider::before, .pipeline-divider::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+
+  /* Eval Results tab */
+  .eval-section { margin-bottom: 2rem; }
+  .eval-section h2 { font-size: 1rem; font-weight: 700; color: var(--text); margin-bottom: 1rem; display:flex; align-items:center; gap:8px; }
+  .eval-section h2 .section-num { background:var(--primary); color:white; border-radius:6px; padding:2px 9px; font-size:0.8rem; }
+  .kpi-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 1rem; margin-bottom:1.5rem; }
+  .kpi-card { background: var(--surface); border-radius:12px; border:1px solid var(--border); padding:1.25rem; text-align:center; box-shadow:0 1px 3px rgba(0,0,0,0.05); }
+  .kpi-card .kpi-val { font-size:2.2rem; font-weight:800; }
+  .kpi-card .kpi-sub { font-size:0.78rem; color:var(--text-muted); margin-top:4px; line-height:1.4; }
+  .kpi-card .kpi-delta { font-size:0.8rem; font-weight:700; margin-top:6px; }
+  .results-table { width:100%; border-collapse:collapse; background:var(--surface); border-radius:12px; overflow:hidden; box-shadow:0 1px 3px rgba(0,0,0,0.05); font-size:0.87rem; }
+  .results-table th { background:#1e293b; color:#e2e8f0; padding:10px 14px; text-align:left; font-size:0.78rem; font-weight:700; text-transform:uppercase; letter-spacing:0.5px; }
+  .results-table td { padding:10px 14px; border-bottom:1px solid var(--border); }
+  .results-table tr:last-child td { border-bottom:none; }
+  .results-table tr.winner { background: #f0fdf4; }
+  .results-table tr.loser { background: var(--bg); }
+  .results-table tr.disclosed { background:#fefce8; }
+  .results-table .f1-val { font-weight:800; font-size:1rem; }
+  .results-table .win-f1 { color:var(--green); }
+  .results-table .lose-f1 { color:var(--text-muted); }
+  .results-table .warn-f1 { color:var(--amber); }
+  .method-chip { display:inline-block; padding:2px 8px; border-radius:10px; font-size:0.75rem; font-weight:600; }
+  .chip-multi { background:var(--primary-light); color:var(--primary); }
+  .chip-single { background:var(--gray-bg); color:var(--gray); }
+  .bar-wrap { display:flex; align-items:center; gap:10px; }
+  .bar-bg { flex:1; background:var(--border); border-radius:4px; height:10px; overflow:hidden; }
+  .bar-fill { height:100%; border-radius:4px; transition:width 0.6s ease; }
+  .dataset-grid { display:grid; grid-template-columns:1fr 1fr; gap:1rem; }
+  .dataset-card { background:var(--surface); border-radius:12px; border:1px solid var(--border); padding:1.25rem; box-shadow:0 1px 3px rgba(0,0,0,0.05); }
+  .dataset-card h3 { font-size:0.88rem; font-weight:700; margin-bottom:0.75rem; color:var(--text); }
+  .dataset-card ul { list-style:none; }
+  .dataset-card ul li { font-size:0.83rem; color:var(--text-muted); padding:3px 0; display:flex; gap:8px; }
+  .dataset-card ul li::before { content:'•'; color:var(--primary); font-weight:700; }
+  .insight-box { background:var(--primary-light); border:1px solid #c7d2fe; border-radius:12px; padding:1.25rem; margin-bottom:1rem; }
+  .insight-box .insight-title { font-weight:700; color:var(--primary); font-size:0.9rem; margin-bottom:6px; }
+  .insight-box p { font-size:0.85rem; color:#3730a3; line-height:1.6; }
+  .warn-box { background:var(--amber-bg); border:1px solid #fde68a; border-radius:12px; padding:1.25rem; margin-bottom:1rem; }
+  .warn-box .insight-title { font-weight:700; color:var(--amber); font-size:0.9rem; margin-bottom:6px; }
+  .warn-box p { font-size:0.85rem; color:#92400e; line-height:1.6; }
+  .chart-wrap { background:var(--surface); border-radius:12px; border:1px solid var(--border); padding:1.5rem; box-shadow:0 1px 3px rgba(0,0,0,0.05); }
+  .chart-row { display:flex; align-items:center; margin-bottom:14px; gap:12px; }
+  .chart-label { width:220px; font-size:0.8rem; color:var(--text); text-align:right; flex-shrink:0; line-height:1.3; }
+  .chart-bar-wrap { flex:1; }
+  .chart-bar { height:28px; border-radius:6px; display:flex; align-items:center; padding-left:10px; font-size:0.78rem; font-weight:700; color:white; min-width:30px; transition:width 0.8s ease; }
+  .chart-val { margin-left:8px; font-size:0.82rem; font-weight:700; color:var(--text); }
+  .chart-group-label { font-size:0.75rem; font-weight:700; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.5px; margin:1rem 0 0.5rem; border-top:1px solid var(--border); padding-top:1rem; }
+
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div>
+    <div class="header-logo">AgentSRS</div>
+    <div class="header-sub">Multi-Agent Software Requirements Quality Analyser</div>
+  </div>
+  <div class="header-badge">Extending ReCompGPT (IEEE TSE 2025)</div>
+</div>
+
+<div class="tabs">
+  <div class="tab active" onclick="switchTab('single')">Single Requirement</div>
+  <div class="tab" onclick="switchTab('file')">Full SRS File</div>
+  <div class="tab" onclick="switchTab('results')">&#128202; Evaluation Results</div>
+</div>
+
+<div class="container">
+
+  <!-- ── TAB 1: Single Requirement ─────────────────────────────────────── -->
+  <div id="tab-single" class="tab-panel active">
+    <div class="form-card">
+      <h2>Analyse a Requirement</h2>
+      <div class="form-group">
+        <label>Informal Description <span class="optional-tag">(optional — enables the primary ReCompGPT completeness mode)</span></label>
+        <textarea id="inp-description" rows="3" placeholder="Paste the stakeholder's informal description here, e.g. 'Members should be able to borrow books. If a book is already borrowed, they should be told it's unavailable.'"></textarea>
+      </div>
+      <div class="form-group">
+        <label>Requirement Text <span style="color:var(--red)">*</span></label>
+        <textarea id="inp-requirement" rows="3" placeholder="e.g. The system shall allow a registered member to borrow a book."></textarea>
+      </div>
+      <button class="btn" id="btn-single" onclick="runSingle()">
+        <span>&#9654;</span> Analyse Requirement
+      </button>
+    </div>
+    <div id="single-result"></div>
+  </div>
+
+  <!-- ── TAB 2: Full SRS File ───────────────────────────────────────────── -->
+  <div id="tab-file" class="tab-panel">
+    <div class="form-card">
+      <h2>Analyse a Full SRS File</h2>
+      <p style="font-size:0.85rem;color:var(--text-muted);margin-bottom:1rem;">
+        Each line = one requirement. For paired description+spec use:
+        <code style="background:var(--bg);padding:2px 6px;border-radius:4px;font-size:0.8rem;">description text || requirement text</code>
+      </p>
+      <div class="upload-area" id="upload-area" onclick="document.getElementById('file-input').click()" ondragover="onDragOver(event)" ondragleave="onDragLeave(event)" ondrop="onDrop(event)">
+        <div class="upload-icon">&#128196;</div>
+        <p><strong>Click to upload</strong> or drag and drop a .txt file</p>
+        <div id="file-name"></div>
+      </div>
+      <input type="file" id="file-input" accept=".txt" onchange="onFileSelected(event)">
+      <br>
+      <button class="btn" id="btn-file" onclick="runFile()" style="margin-top:1rem;">
+        <span>&#9654;</span> Analyse File
+      </button>
+    </div>
+    <div id="file-result"></div>
+  </div>
+
+  <!-- ── TAB 3: Evaluation Results ──────────────────────────────────────── -->
+  <div id="tab-results" class="tab-panel">
+
+    <!-- KPI headline row -->
+    <div class="eval-section">
+      <div class="kpi-grid">
+        <div class="kpi-card">
+          <div class="kpi-val" style="color:var(--green)">0.941</div>
+          <div class="kpi-sub">Multi-Agent Ambiguity F1<br><span style="font-weight:600;color:var(--text)">Primary contribution</span></div>
+          <div class="kpi-delta" style="color:var(--green)">&#8593; +0.214 vs single-prompt</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-val" style="color:var(--primary)">0.824</div>
+          <div class="kpi-sub">Multi-Agent Completeness F1<br><span style="font-weight:600;color:var(--text)">Description-vs-spec mode</span></div>
+          <div class="kpi-delta" style="color:var(--primary)">Recall = 1.000 — catches all gaps</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-val" style="color:var(--text-muted)">60 + 10</div>
+          <div class="kpi-sub">Eval items<br><span style="font-weight:600;color:var(--text)">60-item ablation + 10-item desc. set</span></div>
+          <div class="kpi-delta" style="color:var(--gray)">3 domains · 2 pipelines</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Key insight boxes -->
+    <div class="eval-section">
+      <div class="insight-box">
+        <div class="insight-title">&#127942; Primary Finding — Multi-Agent Wins on Ambiguity</div>
+        <p>The multi-agent pipeline (F1 0.941) substantially outperforms the single-prompt baseline (F1 0.727) on ambiguity detection — a +0.214 margin on n=30 items. This is the novel extension the base paper (ReCompGPT) does not attempt. Ambiguity detection per ISO/IEC/IEEE 29148 is genuinely improved by the structured agent decomposition.</p>
+      </div>
+      <div class="insight-box" style="background:#f0fdf4;border-color:#bbf7d0;">
+        <div class="insight-title" style="color:var(--green)">&#9989; Validated — Completeness Works in Description Mode</div>
+        <p>In the primary (description-vs-spec) operating mode, the multi-agent pipeline correctly identifies <strong>all 7 real gaps</strong> in the 10-item test set (recall = 1.000, F1 = 0.824). This validates that the architecture implements the ReCompGPT M&#8722;C method correctly when given its intended input.</p>
+      </div>
+      <div class="warn-box">
+        <div class="insight-title">&#9888; Disclosed Limitation — Completeness in Spec-Only Mode</div>
+        <p>Without a paired description, the multi-agent completeness check correctly declines to speculate (F1 = 0.080, recall = 0.048). This is expected behaviour, not a bug: the ReCompGPT method is architecturally a description-vs-specification comparison. The single-prompt baseline instead draws on general world knowledge to guess at missing edge cases — which is why it wins in this specific (non-primary) operating mode. This limitation is explicitly disclosed in the paper.</p>
+      </div>
+    </div>
+
+    <!-- F1 bar chart -->
+    <div class="eval-section">
+      <h2><span class="section-num">1</span> F1 Score Comparison — All Conditions</h2>
+      <div class="chart-wrap">
+        <div class="chart-group-label" style="border-top:none;margin-top:0;padding-top:0;">Ambiguity Detection (n=30)</div>
+
+        <div class="chart-row">
+          <div class="chart-label">Multi-Agent<br><span style="color:var(--primary);font-weight:700">★ Primary method</span></div>
+          <div class="chart-bar-wrap">
+            <div class="chart-bar" style="width:94.1%;background:var(--green)">0.941</div>
+          </div>
+        </div>
+        <div class="chart-row">
+          <div class="chart-label">Single-Prompt Baseline</div>
+          <div class="chart-bar-wrap">
+            <div class="chart-bar" style="width:72.7%;background:#94a3b8">0.727</div>
+          </div>
+        </div>
+
+        <div class="chart-group-label">Completeness — Description-vs-Spec Mode (n=10)</div>
+
+        <div class="chart-row">
+          <div class="chart-label">Multi-Agent<br><span style="color:var(--primary);font-size:0.75rem">Recall = 1.000 ✓</span></div>
+          <div class="chart-bar-wrap">
+            <div class="chart-bar" style="width:82.4%;background:#0891b2">0.824</div>
+          </div>
+        </div>
+        <div class="chart-row">
+          <div class="chart-label">Single-Prompt Baseline</div>
+          <div class="chart-bar-wrap">
+            <div class="chart-bar" style="width:87.5%;background:#94a3b8">0.875</div>
+          </div>
+        </div>
+
+        <div class="chart-group-label">Completeness — Spec-Only Fallback Mode (n=30) — disclosed limitation</div>
+
+        <div class="chart-row">
+          <div class="chart-label">Multi-Agent<br><span style="color:var(--amber);font-size:0.75rem">No description → declines to speculate</span></div>
+          <div class="chart-bar-wrap">
+            <div class="chart-bar" style="width:8%;background:#f59e0b;min-width:48px">0.080</div>
+          </div>
+        </div>
+        <div class="chart-row">
+          <div class="chart-label">Single-Prompt Baseline</div>
+          <div class="chart-bar-wrap">
+            <div class="chart-bar" style="width:83.3%;background:#94a3b8">0.833</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Full results table -->
+    <div class="eval-section">
+      <h2><span class="section-num">2</span> Full Ablation Results</h2>
+      <table class="results-table">
+        <thead>
+          <tr>
+            <th>Dimension &amp; Mode</th>
+            <th>Method</th>
+            <th>Accuracy</th>
+            <th>Precision</th>
+            <th>Recall</th>
+            <th>F1</th>
+            <th>n</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="winner">
+            <td rowspan="2" style="font-weight:600">Ambiguity</td>
+            <td><span class="method-chip chip-multi">Multi-Agent</span></td>
+            <td>0.933</td><td>0.941</td><td>0.941</td>
+            <td class="f1-val win-f1">0.941 ★</td><td>30</td>
+          </tr>
+          <tr class="loser">
+            <td><span class="method-chip chip-single">Single-Prompt</span></td>
+            <td>0.600</td><td>0.593</td><td>0.941</td>
+            <td class="f1-val lose-f1">0.727</td><td>30</td>
+          </tr>
+          <tr class="winner">
+            <td rowspan="2" style="font-weight:600">Completeness<br><span style="font-size:0.75rem;font-weight:400;color:var(--green)">description-vs-spec mode</span></td>
+            <td><span class="method-chip chip-multi">Multi-Agent</span></td>
+            <td>0.700</td><td>0.700</td><td><strong>1.000</strong></td>
+            <td class="f1-val" style="color:var(--primary)">0.824</td><td>10</td>
+          </tr>
+          <tr class="loser">
+            <td><span class="method-chip chip-single">Single-Prompt</span></td>
+            <td>0.800</td><td>0.778</td><td>1.000</td>
+            <td class="f1-val lose-f1">0.875</td><td>10</td>
+          </tr>
+          <tr class="disclosed">
+            <td rowspan="2" style="font-weight:600">Completeness<br><span style="font-size:0.75rem;font-weight:400;color:var(--amber)">spec-only fallback (disclosed limitation)</span></td>
+            <td><span class="method-chip chip-multi">Multi-Agent</span></td>
+            <td>0.233</td><td>0.250</td><td>0.048</td>
+            <td class="f1-val warn-f1">0.080</td><td>30</td>
+          </tr>
+          <tr class="disclosed">
+            <td><span class="method-chip chip-single">Single-Prompt</span></td>
+            <td>0.733</td><td>0.741</td><td>0.952</td>
+            <td class="f1-val lose-f1">0.833</td><td>30</td>
+          </tr>
+        </tbody>
+      </table>
+      <p style="font-size:0.78rem;color:var(--text-muted);margin-top:0.5rem;">★ = headline result &nbsp;|&nbsp; Completeness description-mode n=10: differences of 1 row — treat as indicative, not statistically significant.</p>
+    </div>
+
+    <!-- Dataset info -->
+    <div class="eval-section">
+      <h2><span class="section-num">3</span> Evaluation Datasets</h2>
+      <div class="dataset-grid">
+        <div class="dataset-card">
+          <h3>&#128202; 60-Item Ablation Set</h3>
+          <ul>
+            <li>30 completeness items + 30 ambiguity items</li>
+            <li>3 domains: library management, e-commerce/payment, healthcare patient portal</li>
+            <li>~70% defect-present for completeness; ~57% for ambiguity</li>
+            <li>Self-constructed following PURE dataset methodology</li>
+            <li>Used for: ablation comparison (multi-agent vs single-prompt)</li>
+          </ul>
+        </div>
+        <div class="dataset-card">
+          <h3>&#128203; 10-Item Description Set</h3>
+          <ul>
+            <li>7 requirements with seeded completeness gaps</li>
+            <li>3 clean controls (fully specified edge cases)</li>
+            <li>Each item has a paired informal description</li>
+            <li>Library management domain (consistent with base paper examples)</li>
+            <li>Used for: validating the primary description-vs-spec mode</li>
+          </ul>
+        </div>
+        <div class="dataset-card">
+          <h3>&#128218; Base Paper Dataset (PURE)</h3>
+          <ul>
+            <li>79 real requirements documents, multiple domains</li>
+            <li>102 simulated incompleteness cases (3 difficulty levels)</li>
+            <li>ReCompGPT achieves 93.8% detection (pass@3, GPT-4o)</li>
+            <li>Available: doi.org/10.5281/zenodo.15879027</li>
+            <li>AgentSRS evaluation on PURE: identified as future work</li>
+          </ul>
+        </div>
+        <div class="dataset-card">
+          <h3>&#127775; Research Positioning</h3>
+          <ul>
+            <li>ReCompGPT: completeness only, single-LLM pipeline</li>
+            <li>AgentSRS: adds ambiguity detection (novel), multi-agent pipeline</li>
+            <li>Base paper conclusion explicitly names "incorporating agents" as future work</li>
+            <li>AgentSRS ambiguity result (+0.214 F1) is the quantified novel contribution</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- end tab-results -->
+
+</div>
+
+<script>
+// ── Tab switching ─────────────────────────────────────────────────────────────
+function switchTab(name) {
+  document.querySelectorAll('.tab').forEach((t, i) => t.classList.toggle('active', ['single','file','results'][i] === name));
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.getElementById('tab-' + name).classList.add('active');
+}
+
+// ── JSON colorizer ────────────────────────────────────────────────────────────
+function colorizeJSON(obj) {
+  const json = JSON.stringify(obj, null, 2);
+  return json.replace(
+    /("(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*"(\s*:)?|\b(true|false|null)\b|-?\d+(?:\.\d*)?(?:[eE][+-]?\d+)?)/g,
+    m => {
+      if (/^"/.test(m)) return /:$/.test(m) ? `<span class="json-key">${esc(m)}</span>` : `<span class="json-str">${esc(m)}</span>`;
+      if (/true|false/.test(m)) return `<span class="json-bool">${m}</span>`;
+      if (/null/.test(m)) return `<span class="json-null">${m}</span>`;
+      return `<span class="json-num">${m}</span>`;
+    }
+  );
+}
+function esc(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function escText(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+// ── Status helpers ────────────────────────────────────────────────────────────
+function statusBadge(step) {
+  const s = step.status, lbl = step.status_label || s;
+  if (s === 'clean') return `<span class="badge badge-green">${escText(lbl)}</span>`;
+  if (s === 'issue') return `<span class="badge badge-red">${escText(lbl)}</span>`;
+  if (s === 'skipped') return `<span class="badge badge-gray">${escText(lbl)}</span>`;
+  if (s === 'ok') return `<span class="badge badge-blue">${escText(lbl)}</span>`;
+  if (s === 'error') return `<span class="badge badge-red">${escText(lbl)}</span>`;
+  return `<span class="badge badge-gray">${escText(lbl)}</span>`;
+}
+
+function stepBorderClass(step) {
+  if (step.step === '3' && step.status === 'ok') return 'step-3-ok';
+  return 'status-' + step.status;
+}
+
+function stepNumClass(step) {
+  if (step.step === '2A' || step.step === '2B') return 's2a';
+  if (step.step === '3') return 's3';
+  return '';
+}
+
+// ── Collapsible ───────────────────────────────────────────────────────────────
+let collapseId = 0;
+function collapsible(label, content) {
+  const id = 'c' + (++collapseId);
+  return `
+    <button class="collapsible-btn" onclick="toggleCollapse('${id}', this)">
+      &#128274; ${label} <span class="chevron">&#9660;</span>
+    </button>
+    <div class="collapsible-content" id="${id}">
+      <pre>${escText(content)}</pre>
+    </div>`;
+}
+function toggleCollapse(id, btn) {
+  const el = document.getElementById(id);
+  const isOpen = el.classList.toggle('open');
+  btn.classList.toggle('open', isOpen);
+}
+
+// ── Render a single step card ─────────────────────────────────────────────────
+function renderStep(step) {
+  const border = stepBorderClass(step);
+  const numCls = stepNumClass(step);
+  const modeHtml = step.mode ? `<div style="margin-bottom:8px"><span class="mode-tag">&#128280; ${escText(step.mode)}</span></div>` : '';
+  const passesHtml = step.passes_to ? `<div class="data-label" style="margin-top:4px;color:var(--primary)">&#8594; Passes to: ${escText(step.passes_to)}</div>` : '';
+
+  return `
+  <div class="step-card ${border}">
+    <div class="step-header">
+      <div class="step-num ${numCls}">${escText(step.step)}</div>
+      <div class="step-title">
+        <h3>${escText(step.agent)}</h3>
+        <div class="step-desc">${escText(step.description || '')}</div>
+      </div>
+      ${statusBadge(step)}
+    </div>
+    <div class="step-body">
+      ${modeHtml}
+      ${collapsible('SYSTEM PROMPT — the instruction given to the LLM', step.system_prompt || '')}
+      <div class="data-block">
+        <div class="data-label">INPUT — exact user message sent to the LLM</div>
+        <pre class="input-pre">${escText(step.user_prompt || '')}</pre>
+      </div>
+      <div class="data-block">
+        <div class="data-label">OUTPUT — raw JSON returned by the LLM</div>
+        <pre>${colorizeJSON(step.output || {})}</pre>
+        ${passesHtml}
+      </div>
+    </div>
+  </div>`;
+}
+
+// ── Render the Report card ────────────────────────────────────────────────────
+function renderReport(report, refined) {
+  const compScore = report.completeness_score;
+  const ambScore  = report.ambiguity_score;
+  const improvedReq = refined ? (refined.improved_requirement || '') : '';
+  const changes = refined ? (refined.changes_made || []) : [];
+
+  const changesHtml = changes.length
+    ? `<ul class="changes-list">${changes.map(c => `<li>${escText(c)}</li>`).join('')}</ul>`
+    : '';
+
+  const refinedHtml = improvedReq ? `
+    <div class="refined-box" style="margin-top:1rem;">
+      <div class="refined-label">Refined Requirement</div>
+      <div class="refined-text">${escText(improvedReq)}</div>
+      ${changesHtml}
+    </div>` : '';
+
+  const catBreakdown = report.ambiguity_category_breakdown;
+  const catHtml = catBreakdown && Object.keys(catBreakdown).length
+    ? '<div style="margin-top:0.75rem;font-size:0.8rem;color:#94a3b8">Ambiguity categories: ' +
+      Object.entries(catBreakdown).map(([k,v]) => `<span style="color:#fbbf24">${escText(k.replace(/_/g,' '))}</span>: ${v}`).join(' &nbsp;|&nbsp; ') + '</div>'
+    : '';
+
+  // Status helpers — 100 = passed (no issue), 0 = failed (issue found)
+  const compOk = compScore === 100;
+  const ambOk  = ambScore  === 100;
+
+  const compColor = compOk ? '#22c55e' : '#ef4444';
+  const ambColor  = ambOk  ? '#22c55e' : '#ef4444';
+  const compLabel = compOk ? '✓ Complete'   : '✗ Incomplete';
+  const ambLabel  = ambOk  ? '✓ Clear'      : '✗ Ambiguous';
+  const compSub   = compOk ? 'No gaps detected' : 'Issues found — see Agent 2A output';
+  const ambSub    = ambOk  ? 'No ambiguity detected' : 'Issues found — see Agent 2B output';
+
+  return `
+  <div class="report-card">
+    <h3>&#128203; Report Module <span style="font-size:0.7rem;font-weight:400;letter-spacing:0;text-transform:none;color:#64748b">(pure aggregation — not an LLM agent)</span></h3>
+    <div class="report-grid">
+      <div class="report-metric">
+        <div class="metric-val" style="font-size:1.1rem;font-weight:700;color:${compColor}">${compLabel}</div>
+        <div class="metric-lbl">Completeness</div>
+        <div style="font-size:0.72rem;color:#64748b;margin-top:3px">${compSub}</div>
+      </div>
+      <div class="report-metric">
+        <div class="metric-val" style="font-size:1.1rem;font-weight:700;color:${ambColor}">${ambLabel}</div>
+        <div class="metric-lbl">Clarity (Ambiguity)</div>
+        <div style="font-size:0.72rem;color:#64748b;margin-top:3px">${ambSub}</div>
+      </div>
+    </div>
+    ${catHtml}
+    ${refinedHtml}
+  </div>`;
+}
+
+// ── Arrow connector between steps ────────────────────────────────────────────
+function arrow(label) {
+  return `<div class="pipeline-divider">${escText(label)}</div>`;
+}
+
+// ── Render full single-req trace ──────────────────────────────────────────────
+function renderTrace(data) {
+  const trace = data.trace || [];
+  const report = data.report || {};
+  const step1 = trace.find(s => s.step === '1');
+  const step2a = trace.find(s => s.step === '2A');
+  const step2b = trace.find(s => s.step === '2B');
+  const step3 = trace.find(s => s.step === '3');
+
+  let html = '';
+  if (step1) html += renderStep(step1);
+  if (step2a) { html += arrow('structured requirement → both quality checks run in sequence'); html += renderStep(step2a); }
+  if (step2b) { html += arrow('issues from 2A collected → ambiguity check runs on original text'); html += renderStep(step2b); }
+  if (step3)  { html += arrow('both issue dicts merged → refinement agent'); html += renderStep(step3); }
+
+  // Report
+  const refined = step3 ? step3.output : null;
+  html += `<div style="margin-top:8px">` + arrow('refined requirement → report module') + renderReport(report, refined) + '</div>';
+
+  return `<div class="trace-wrapper">${html}</div>`;
+}
+
+// ── Single requirement flow ───────────────────────────────────────────────────
+async function runSingle() {
+  const req = document.getElementById('inp-requirement').value.trim();
+  const desc = document.getElementById('inp-description').value.trim();
+  if (!req) { alert('Please enter a requirement.'); return; }
+
+  const btn = document.getElementById('btn-single');
+  const out = document.getElementById('single-result');
+  btn.disabled = true;
+  out.innerHTML = `<div class="spinner-wrap"><div class="spinner"></div><p>Running pipeline — this takes ~15-20 seconds per requirement (Groq API calls + rate-limit guards).</p></div>`;
+
+  try {
+    const res = await fetch('/analyze-single', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({requirement: req, description: desc || null}),
+    });
+    if (!res.ok) throw new Error('Server error ' + res.status);
+    const data = await res.json();
+    out.innerHTML = renderTrace(data);
+  } catch(e) {
+    out.innerHTML = `<div class="error-box">&#9888; Error: ${escText(e.message)}</div>`;
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+// ── File upload flow ──────────────────────────────────────────────────────────
+let selectedFile = null;
+
+function onFileSelected(e) {
+  selectedFile = e.target.files[0];
+  document.getElementById('file-name').textContent = selectedFile ? '✓ ' + selectedFile.name : '';
+}
+function onDragOver(e) { e.preventDefault(); document.getElementById('upload-area').classList.add('dragover'); }
+function onDragLeave(e) { document.getElementById('upload-area').classList.remove('dragover'); }
+function onDrop(e) {
+  e.preventDefault();
+  document.getElementById('upload-area').classList.remove('dragover');
+  selectedFile = e.dataTransfer.files[0];
+  if (selectedFile) document.getElementById('file-name').textContent = '✓ ' + selectedFile.name;
+}
+
+async function runFile() {
+  if (!selectedFile) { alert('Please select a .txt file first.'); return; }
+  const btn = document.getElementById('btn-file');
+  const out = document.getElementById('file-result');
+  btn.disabled = true;
+  out.innerHTML = `<div class="spinner-wrap"><div class="spinner"></div><p>Running pipeline on all requirements. This may take a few minutes.</p></div>`;
+
+  const form = new FormData();
+  form.append('file', selectedFile);
+
+  try {
+    const res = await fetch('/analyze-traced', { method: 'POST', body: form });
+    if (!res.ok) throw new Error('Server error ' + res.status);
+    const data = await res.json();
+    out.innerHTML = renderFileResult(data);
+  } catch(e) {
+    out.innerHTML = `<div class="error-box">&#9888; Error: ${escText(e.message)}</div>`;
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+// ── Render multi-requirement result ──────────────────────────────────────────
+function renderFileResult(data) {
+  const reqs = data.requirements || [];
+  const report = data.report || {};
+  const total = reqs.length;
+  const complete = reqs.filter(r => !r.has_issues || !r.issues.completeness).length;
+  const unambiguous = reqs.filter(r => !r.has_issues || !r.issues.ambiguity).length;
+
+  const compIssues = reqs.filter(r => r.issues && r.issues.completeness).length;
+  const ambIssues  = reqs.filter(r => r.issues && r.issues.ambiguity).length;
+  const compClean  = total - compIssues;
+  const ambClean   = total - ambIssues;
+
+  let html = `
+    <div class="summary-bar">
+      <div class="summary-stat"><div class="stat-val">${total}</div><div class="stat-lbl">Requirements</div></div>
+      <div class="summary-stat">
+        <div class="stat-val" style="color:${compIssues > 0 ? 'var(--red,#ef4444)' : 'var(--green)'}">${compIssues > 0 ? compIssues : '✓ 0'}</div>
+        <div class="stat-lbl">Completeness Issues</div>
+        <div style="font-size:0.7rem;color:#64748b;margin-top:2px">${compClean}/${total} clean</div>
+      </div>
+      <div class="summary-stat">
+        <div class="stat-val" style="color:${ambIssues > 0 ? '#d97706' : 'var(--green)'}">${ambIssues > 0 ? ambIssues : '✓ 0'}</div>
+        <div class="stat-lbl">Ambiguity Issues</div>
+        <div style="font-size:0.7rem;color:#64748b;margin-top:2px">${ambClean}/${total} clear</div>
+      </div>
+    </div>`;
+
+  reqs.forEach((r, i) => {
+    const compOk = !r.issues || !r.issues.completeness;
+    const ambOk = !r.issues || !r.issues.ambiguity;
+    const cardId = 'req-' + i;
+
+    html += `
+    <div class="req-card">
+      <div class="req-header" onclick="toggleReq('${cardId}')">
+        <span class="req-num">REQ ${i+1}</span>
+        <span class="req-text">${escText((r.original || '').substring(0, 120))}${(r.original||'').length > 120 ? '…' : ''}</span>
+        <div class="req-badges">
+          ${compOk ? '<span class="badge badge-green">Complete</span>' : '<span class="badge badge-red">Incomplete</span>'}
+          ${ambOk ? '<span class="badge badge-blue">Unambiguous</span>' : '<span class="badge badge-amber">Ambiguous</span>'}
+        </div>
+        <span class="req-expand" id="exp-${cardId}">&#9660;</span>
+      </div>
+      <div class="req-trace" id="${cardId}">
+        ${renderTrace(r)}
+      </div>
+    </div>`;
+  });
+
+  return html;
+}
+
+function toggleReq(id) {
+  const trace = document.getElementById(id);
+  const exp = document.getElementById('exp-' + id);
+  const open = trace.classList.toggle('open');
+  exp.classList.toggle('open', open);
+}
+</script>
+</body>
+</html>

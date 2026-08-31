@@ -1,0 +1,17 @@
+{
+  "multi_agent": {
+    "n": 10,
+    "accuracy": 0.7,
+    "precision": 0.7,
+    "recall": 1.0,
+    "f1": 0.824
+  },
+  "single_prompt": {
+    "n": 10,
+    "accuracy": 0.8,
+    "precision": 0.778,
+    "recall": 1.0,
+    "f1": 0.875
+  },
+  "run_date": "2026-08-24T00:00:00"
+}

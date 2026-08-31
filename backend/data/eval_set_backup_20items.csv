@@ -1,0 +1,21 @@
+id,requirement_text,task,ground_truth_issue_present,ground_truth_issue_description
+C1,The system shall allow a registered member to borrow a book.,completeness,True,No handling for the case where the book is currently unavailable
+C2,The system shall allow a member to return a borrowed book.,completeness,True,No handling for an overdue return (fine/penalty case)
+C3,When a member's borrowed book exceeds the due date the system shall notify the member.,completeness,True,No handling for what happens if the member ignores the notification
+C4,The system shall allow an admin to add a new book to the catalog.,completeness,True,No handling for a duplicate ISBN already in the catalog
+C5,The system shall allow a member to search for a book by title.,completeness,True,No handling for a zero-result search
+C6,The system shall allow an admin to remove a book from the catalog.,completeness,True,No handling for removing a book that is currently borrowed
+C7,The system shall allow a member to reserve a book that is currently unavailable.,completeness,True,No handling for notifying the member once the book becomes available
+C8,The system shall allow a member to borrow a book only if the book is available and the member has no unpaid fines; otherwise the system shall display a rejection message.,completeness,False,Edge case (unavailable/unpaid fines) already explicitly handled
+C9,The system shall allow an admin to add a new book to the catalog and if the ISBN already exists the system shall reject the addition and display an error message.,completeness,False,Duplicate ISBN case already explicitly handled
+C10,The system shall allow a member to renew a borrowed book up to two times provided no other member has reserved it; otherwise the renewal request shall be denied.,completeness,False,Renewal limit and reservation conflict already explicitly handled
+A1,The system shall provide a user-friendly interface for searching books.,ambiguity,True,"""User-friendly"" is subjective and not measurable"
+A2,The system shall process borrow requests quickly.,ambiguity,True,"""Quickly"" has no measurable time bound"
+A3,The system shall ensure the catalog is reasonably up to date.,ambiguity,True,"""Reasonably up to date"" is subjective"
+A4,The system shall handle a large number of concurrent users efficiently.,ambiguity,True,"""Large number"" and ""efficiently"" are both unmeasurable"
+A5,The system shall provide appropriate notifications to members.,ambiguity,True,"""Appropriate"" does not specify notification type or timing"
+A6,The system shall allow a member to borrow up to 5 books at a time.,ambiguity,False,Measurable numeric limit already specified
+A7,The system shall send an overdue notification email within 24 hours of the due date passing.,ambiguity,False,Measurable time bound already specified
+A8,The system shall support at least 200 concurrent user sessions without response time exceeding 2 seconds.,ambiguity,False,Measurable performance criteria already specified
+A9,The system shall secure member data properly.,ambiguity,True,"""Properly"" does not specify a security standard or mechanism"
+A10,The system shall allow an admin to generate a report listing all books overdue by more than 7 days.,ambiguity,False,Measurable threshold already specified
