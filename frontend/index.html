@@ -295,9 +295,9 @@
           <div class="kpi-delta" style="color:var(--primary)">Recall = 1.000 — catches all gaps</div>
         </div>
         <div class="kpi-card">
-          <div class="kpi-val" style="color:var(--text-muted)">60 + 10</div>
-          <div class="kpi-sub">Eval items<br><span style="font-weight:600;color:var(--text)">60-item ablation + 10-item desc. set</span></div>
-          <div class="kpi-delta" style="color:var(--gray)">3 domains · 2 pipelines</div>
+          <div class="kpi-val" style="color:var(--text-muted)">172</div>
+          <div class="kpi-sub">Eval items<br><span style="font-weight:600;color:var(--text)">60 ablation + 10 desc. + 102 PURE</span></div>
+          <div class="kpi-delta" style="color:var(--gray)">3 studies · 2 pipelines</div>
         </div>
       </div>
     </div>
@@ -315,6 +315,10 @@
       <div class="warn-box">
         <div class="insight-title">&#9888; Disclosed Limitation — Completeness in Spec-Only Mode</div>
         <p>Without a paired description, the multi-agent completeness check correctly declines to speculate (F1 = 0.080, recall = 0.048). This is expected behaviour, not a bug: the ReCompGPT method is architecturally a description-vs-specification comparison. The single-prompt baseline instead draws on general world knowledge to guess at missing edge cases — which is why it wins in this specific (non-primary) operating mode. This limitation is explicitly disclosed in the paper.</p>
+      </div>
+      <div class="insight-box" style="background:#eff6ff;border-color:#bfdbfe;">
+        <div class="insight-title" style="color:#1d4ed8">&#127758; Study 3 — PURE Benchmark (102 cases, LLM-as-judge corrected metric)</div>
+        <p>AgentSRS was evaluated on the same 102-case PURE dataset used by ReCompGPT. Using a corrected <strong>LLM-as-judge metric</strong> (verifying the predicted gap matches the specific removed requirement), the multi-agent pipeline achieves a <strong>74.5% match rate</strong> vs 79.4% for the single-prompt baseline. ReCompGPT pass@1 with GPT-4o = 81.4%. The gap is explained by model size (gpt-oss-20b vs GPT-4o). Multi-agent wins on <strong>branch/conditional gaps</strong> (60% vs 55%) and <strong>hard L3 cases</strong> (50% vs 42.9%).</p>
       </div>
     </div>
 
@@ -418,6 +422,21 @@
             <td>0.733</td><td>0.741</td><td>0.952</td>
             <td class="f1-val lose-f1">0.833</td><td>30</td>
           </tr>
+          <tr style="background:#eff6ff;">
+            <td rowspan="3" style="font-weight:600">PURE Benchmark<br><span style="font-size:0.75rem;font-weight:400;color:#1d4ed8">match rate (LLM-as-judge)</span></td>
+            <td><span class="method-chip chip-multi">Multi-Agent</span></td>
+            <td colspan="3" style="color:#64748b;font-size:0.8rem">match rate (not Acc/P/R)</td>
+            <td class="f1-val" style="color:#d97706">74.5%</td><td>102</td>
+          </tr>
+          <tr style="background:#eff6ff;">
+            <td><span class="method-chip chip-single">Single-Prompt</span></td>
+            <td colspan="3" style="color:#64748b;font-size:0.8rem">match rate (not Acc/P/R)</td>
+            <td class="f1-val lose-f1">79.4%</td><td>102</td>
+          </tr>
+          <tr style="background:#eff6ff;">
+            <td colspan="5" style="font-size:0.78rem;color:#64748b">Multi-agent wins: branch gaps 60% vs 55% · hard L3 cases 50% vs 42.9% · ReCompGPT (GPT-4o) pass@1 = 81.4%</td>
+            <td></td>
+          </tr>
         </tbody>
       </table>
       <p style="font-size:0.78rem;color:var(--text-muted);margin-top:0.5rem;">★ = headline result &nbsp;|&nbsp; Completeness description-mode n=10: differences of 1 row — treat as indicative, not statistically significant.</p>
@@ -448,13 +467,14 @@
           </ul>
         </div>
         <div class="dataset-card">
-          <h3>&#128218; Base Paper Dataset (PURE)</h3>
+          <h3>&#128218; PURE Benchmark Dataset</h3>
           <ul>
-            <li>79 real requirements documents, multiple domains</li>
-            <li>102 simulated incompleteness cases (3 difficulty levels)</li>
-            <li>ReCompGPT achieves 93.8% detection (pass@3, GPT-4o)</li>
-            <li>Available: doi.org/10.5281/zenodo.15879027</li>
-            <li>AgentSRS evaluation on PURE: identified as future work</li>
+            <li>31 documents, 102 incompleteness cases (3 difficulty levels)</li>
+            <li>ReCompGPT reference: pass@1 = 81.4%, pass@3 = 93.8% (GPT-4o)</li>
+            <li>AgentSRS multi-agent match rate: <strong>74.5%</strong> (LLM-as-judge)</li>
+            <li>AgentSRS single-prompt match rate: 79.4%</li>
+            <li>Multi-agent wins: branch gaps (60% vs 55%), hard L3 (50% vs 42.9%)</li>
+            <li>Source: <a href="https://doi.org/10.5281/zenodo.15879027" target="_blank">doi.org/10.5281/zenodo.15879027</a></li>
           </ul>
         </div>
         <div class="dataset-card">
