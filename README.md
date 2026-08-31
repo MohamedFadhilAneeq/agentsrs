@@ -10,7 +10,7 @@ evaluation suite.
 
 ## Architecture
 
-`
+```
 Input Requirement
       |
       v
@@ -25,16 +25,15 @@ Input Requirement
       |
       v
 [Report Module]              Pure Python aggregation — NOT an LLM agent
-`
+```
 
-All agents use openai/gpt-oss-20b via Groq. Structured JSON output enforced at
-every step.
+All agents use `openai/gpt-oss-20b` via Groq. Structured JSON output enforced at every step.
 
 ---
 
 ## Setup
 
-`ash
+```bash
 # 1 — Create and activate a virtual environment
 python -m venv venv
 venv\Scripts\activate        # Windows
@@ -46,85 +45,88 @@ pip install -r requirements.txt
 # 3 — Configure API keys
 cp .env.example .env
 # Edit .env and add your Groq API key (free at https://console.groq.com)
-`
+```
 
 ---
 
 ## Running
 
-### Web frontend (recommended for demo)
+### Web frontend (recommended)
 
-`ash
+```bash
 uvicorn backend.api:app --reload --port 8000
 # Open http://localhost:8000
-`
+```
 
 Three tabs:
 - **Single Requirement** — paste one requirement + optional description, see live agent trace
-- **Full SRS File** — upload a .txt file (one requirement per line), analyse all at once
+- **Full SRS File** — upload a `.txt` file (one requirement per line), analyse all at once
 - **Evaluation Results** — static display of Study 1 & 2 results
 
 ### File format for full SRS upload
 
-`
+```
 # Spec only (weaker completeness check):
 The system shall allow a user to log in.
 
 # Paired description + spec (recommended — enables ReCompGPT M-C method):
-Users should be able to log in with email and password. If wrong credentials are entered they should be told. || The system shall allow a user to log in using their email and password.
-`
+Users should be able to log in with email and password. || The system shall allow a user to log in.
+```
+
+Use `||` to separate the informal description from the formal requirement on the same line.
 
 ### Command-line pipeline
 
-`ash
+```bash
 python -m backend.main backend/data/sample_srs_with_description.txt groq
-`
+```
 
 ---
 
 ## Evaluation
 
-Results from all three studies are saved under ackend/experiments/results/.
+Results from all three studies are saved under `backend/experiments/results/`.
 
-`ash
+```bash
 # Show saved evaluation results (instant)
 .\eval.bat --show
 
 # Show including PURE dataset Study 3
 .\eval.bat --show --pure
 
-# Re-run Study 1 + 2 (takes ~25 min, requires API keys)
+# Re-run Study 1 + 2 (~25 min, requires API keys)
 .\eval.bat groq --force
 
-# Run PURE dataset Study 3 (takes ~45 min first run, ~5 min for judge-only re-run)
+# Run PURE dataset Study 3 (~45 min first run, ~5 min for judge-only re-run)
 .\eval.bat --pure groq
-`
+```
 
 ### Results summary
 
-| Setting | Multi-Agent F1 | Single-Prompt F1 | Verdict |
+| Setting | Multi-Agent | Single-Prompt | Verdict |
 |---|---|---|---|
-| **Ambiguity** (n=30) | **0.941** | 0.727 | Multi-agent wins +0.214 |
-| Completeness, description mode (n=10) | 0.824 | 0.875 | Comparable — both recall=1.0 |
-| Completeness, spec-only (n=30) | 0.080 | 0.833 | Disclosed limitation (no description) |
+| **Ambiguity** (n=30) | **F1 0.941** | F1 0.727 | Multi-agent wins +0.214 |
+| Completeness, description mode (n=10) | F1 0.824 | F1 0.875 | Comparable — both recall=1.0 |
+| Completeness, spec-only (n=30) | F1 0.080 | F1 0.833 | Disclosed limitation (no description) |
 | PURE benchmark match rate (n=102) | 74.5% | 79.4% | Below ReCompGPT GPT-4o (81.4%) |
 | PURE branch gaps (n=20) | **60.0%** | 55.0% | Multi-agent wins on conditional gaps |
+| PURE hard L3 cases (n=14) | **50.0%** | 42.9% | Multi-agent wins on subtle gaps |
 
 ### PURE Dataset (Study 3)
 
-Download from Zenodo (doi.org/10.5281/zenodo.15879027) and place as
-ackend/data/ReGen.zip. The evaluation script loads it automatically.
+Download from Zenodo ([doi.org/10.5281/zenodo.15879027](https://doi.org/10.5281/zenodo.15879027))
+and place as `backend/data/ReGen.zip`. The evaluation script loads it automatically.
 
-**Note on metric:** Detection rate (did the model flag anything missing?) is NOT
-comparable to ReCompGPT pass@k. We use an LLM-as-judge step to verify whether
-the predicted gap semantically matches the specific removed requirement — this is
-the correct metric.
+> **Note on metric:** Detection rate (did the model flag *anything* missing?) is NOT
+> comparable to ReCompGPT pass@k. This project uses an LLM-as-judge step to verify
+> whether the predicted gap semantically matches the specific removed requirement —
+> the correct metric comparable to pass@1.
 
 ---
 
 ## Project structure
 
-`
+```
 backend/
   llm/client.py                  Unified LLM client — Groq with multi-key rotation
   agents/
@@ -145,9 +147,9 @@ backend/
 frontend/
   index.html                     Single-file frontend (no build step)
 eval.bat                         Windows helper to run evaluation studies
-requirements.txt
 .env.example                     Template for API key configuration
-`
+requirements.txt
+```
 
 ---
 
@@ -155,8 +157,8 @@ requirements.txt
 
 Sheng, J., Wang, Q. & Liu, Y. (2025). *ReCompGPT: An NL2NL Framework for
 Automated Requirements Completeness Checking.* IEEE Transactions on Software
-Engineering, Vol. 51.
+Engineering, Vol. 51.  
 DOI: [10.1109/TSE.2025.3613507](https://doi.org/10.1109/TSE.2025.3613507)
 
-Section IX of the paper explicitly states: *"We also consider incorporating
-agents into our method"* — direct justification for this work.
+Section IX of the paper explicitly states: *"We also consider incorporating agents into our method"* —
+direct justification for the multi-agent architecture in this work.
