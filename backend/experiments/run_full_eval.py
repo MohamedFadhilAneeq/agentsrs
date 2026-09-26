@@ -464,7 +464,7 @@ def print_summary(ablation, desc, pure=None):
         "Completeness, description mode  (n=10)",
         Text(f"{ma_d:.3f}", style="cyan"),
         Text(f"{sp_d:.3f}", style="dim"),
-        "[dim]Comparable — both recall=1.0[/dim]",
+        "[dim]Indicative only — n=10, recall=1.0 both[/dim]",
     )
     t.add_row(
         "Completeness, spec-only  (n=30)",
@@ -476,7 +476,8 @@ def print_summary(ablation, desc, pure=None):
     if pure and pure.get("has_judge"):
         multi_mr  = pure.get("completeness_match_rate_multi",  0)
         single_mr = pure.get("completeness_match_rate_single", 0)
-        
+        recomp_pass1 = pure.get("recompgpt_pass1", 0.814)
+
         branch_data = pure.get("by_type", {}).get("branch", {})
         b_n = branch_data.get("n", 20)
         b_mm = branch_data.get("multi_matched", 0) / b_n if b_n else 0
@@ -490,9 +491,9 @@ def print_summary(ablation, desc, pure=None):
         t.add_section()
         t.add_row(
             "Completeness, PURE benchmark  (n=102)",
-            Text(f"{multi_mr:.1%} match", style="bold yellow"),
-            Text(f"{single_mr:.1%} match", style="dim"),
-            f"[yellow]Below ReCompGPT pass@1 ({pure.get('recompgpt_pass1', 0.814):.1%})[/yellow]",
+            Text(f"{multi_mr:.1%} match", style="yellow"),
+            Text(f"{single_mr:.1%} match  ← wins overall", style="dim"),
+            f"[yellow]Both below ReCompGPT pass@1 ({recomp_pass1:.1%}) — model-size gap[/yellow]",
         )
         t.add_row(
             f"  branch gaps  (n={b_n})  ← multi wins",
@@ -504,7 +505,7 @@ def print_summary(ablation, desc, pure=None):
             f"  hard L3 cases  (n={l3_n})  ← multi wins",
             Text(f"{l3_mm:.1%}", style="bold green"),
             Text(f"{l3_sm:.1%}", style="dim"),
-            f"[bold green]Multi-agent +{l3_mm - l3_sm:.0%} on subtle gaps[/bold green]",
+            f"[bold green]Multi-agent +{l3_mm - l3_sm:.0%} on hardest cases[/bold green]",
         )
     else:
         t.add_section()

@@ -407,15 +407,15 @@ def print_pure_results(results):
         Text(f"{multi_det:.1%} ({m['multi_detected']}/{n})",   style="dim"),
         Text(f"{multi_mat:.1%} ({m['multi_matched']}/{n})" if multi_mat is not None else "—",
              style="bold green" if (multi_mat or 0) >= recomp_pass1 else "yellow"),
-        f"ReCompGPT pass@1={recomp_pass1:.1%}  pass@3={recomp_pass3:.1%}",
+        f"Both vs pass@1={recomp_pass1:.1%}  (pass@3={recomp_pass3:.1%} for ref)",
     )
     t.add_row(
-        "[dim]Single-Prompt Baseline[/dim]",
+        "[dim]Single-Prompt Baseline[/dim]\n[dim](wins overall at n=102)[/dim]",
         str(n),
         Text(f"{single_det:.1%} ({m['single_detected']}/{n})", style="dim"),
         Text(f"{single_mat:.1%} ({m['single_matched']}/{n})" if single_mat is not None else "—",
              style="green" if (single_mat or 0) >= recomp_pass1 else "dim"),
-        "[dim](same model, flat prompt — fair baseline)[/dim]",
+        "[dim]Same model, single pass — fair baseline[/dim]",
     )
     console.print(t)
 
